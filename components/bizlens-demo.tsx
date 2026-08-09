@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ArrowUpRight, Check, ChevronRight, CircleAlert, Code, Database, Download, FileSpreadsheet, FileText, Filter, LayoutDashboard, MessageCircle, Play, Search, ShieldCheck, Sparkles, Terminal, Upload, X, AlertTriangle, Award, CheckCircle2, Cpu, Zap } from 'lucide-react'
-import { copilotAnswers, novaRetail, parsedLedgerData, rawCsvDatasets, sampleQueries, workflowSteps, type Claim, type LedgerRow } from '@/lib/bizlens-data'
+import { ArrowUpRight, Check, ChevronRight, CircleAlert, Code, Database, Download, FileSpreadsheet, FileText, LayoutDashboard, MessageCircle, Play, Search, ShieldCheck, Sparkles, Upload, X, AlertTriangle, Award, CheckCircle2, Cpu, Zap } from 'lucide-react'
+import { copilotAnswers, novaRetail, parsedLedgerData, rawCsvDatasets, workflowSteps, type Claim, type LedgerRow } from '@/lib/bizlens-data'
 
 const questions = Object.keys(copilotAnswers)
 
@@ -19,18 +19,9 @@ export function BizLensDemo() {
   const [answer, setAnswer] = useState('Ask a question and BizLens will trace the answer back to the verified source trail.')
 
   // Live Dashboard & Database Controls
-  const [demoTab, setDemoTab] = useState<'dashboard' | 'csv' | 'sql' | 'audit'>('dashboard')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [deptFilter, setDeptFilter] = useState<string>('all')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [demoTab, setDemoTab] = useState<'dashboard' | 'csv'>('dashboard')
   const [selectedCsvKey, setSelectedCsvKey] = useState<keyof typeof rawCsvDatasets>('financialLedger')
   const [rawViewMode, setRawViewMode] = useState<'table' | 'raw'>('table')
-  const [sqlQuery, setSqlQuery] = useState(sampleQueries[0].query)
-  const [sqlResults, setSqlResults] = useState<{ count: number; data: Partial<LedgerRow>[]; executionTime: string }>({
-    count: 6,
-    data: parsedLedgerData.filter((r) => r.status === 'verified'),
-    executionTime: '0.42ms'
-  })
 
   // Live Intelligence Engine Controls
   const [pipelineScenario, setPipelineScenario] = useState<'verified' | 'conflict'>('verified')
@@ -56,30 +47,14 @@ export function BizLensDemo() {
   const hasDataset = files.length > 0
   const status = useMemo(() => `${files.length} sources active · CSV database indexed`, [files])
 
-  // Filtered Ledger Data calculation
-  const filteredLedger = useMemo(() => {
-    return parsedLedgerData.filter((row) => {
-      const matchesSearch = searchQuery === '' || 
-        row.transaction_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        row.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        row.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        row.source_file.toLowerCase().includes(searchQuery.toLowerCase())
-
-      const matchesDept = deptFilter === 'all' || row.department.toLowerCase() === deptFilter.toLowerCase()
-      const matchesStatus = statusFilter === 'all' || row.status === statusFilter
-
-      return matchesSearch && matchesDept && matchesStatus
-    })
-  }, [searchQuery, deptFilter, statusFilter])
-
-  // Live KPI Summary Metrics
+  // Live KPI Summary Metrics (computed from full parsed ledger)
   const kpiMetrics = useMemo(() => {
-    const verifiedRows = filteredLedger.filter((r) => r.status === 'verified')
+    const verifiedRows = parsedLedgerData.filter((r) => r.status === 'verified')
     const totalRev = verifiedRows.reduce((acc, r) => acc + r.revenue, 0)
     const totalExp = verifiedRows.reduce((acc, r) => acc + r.expense, 0)
     const netProfit = totalRev - totalExp
     const marginPct = totalRev > 0 ? ((netProfit / totalRev) * 100).toFixed(1) : '0.0'
-    const conflictCount = filteredLedger.filter((r) => r.status === 'conflict').length
+    const conflictCount = parsedLedgerData.filter((r) => r.status === 'conflict').length
 
     return {
       totalRev: `$${(totalRev / 1000000).toFixed(2)}M`,
@@ -88,7 +63,7 @@ export function BizLensDemo() {
       marginPct: `${marginPct}%`,
       conflictCount,
     }
-  }, [filteredLedger])
+  }, [])
 
   function loadDataset() { 
     setFiles(['q3_finance_ledger.csv', 'crm_export_q3.csv', 'board_report.pdf'])
@@ -104,25 +79,7 @@ export function BizLensDemo() {
     } 
   }
 
-  function runCustomSql(queryText: string) {
-    setSqlQuery(queryText)
-    const lower = queryText.toLowerCase()
-    let resultRows = parsedLedgerData
 
-    if (lower.includes("status = 'verified'")) {
-      resultRows = parsedLedgerData.filter((r) => r.status === 'verified')
-    } else if (lower.includes("status = 'conflict'")) {
-      resultRows = parsedLedgerData.filter((r) => r.status === 'conflict')
-    } else if (lower.includes('department')) {
-      resultRows = parsedLedgerData.filter((r) => r.department === 'Sales' || r.department === 'Marketing')
-    }
-
-    setSqlResults({
-      count: resultRows.length,
-      data: resultRows,
-      executionTime: `${(Math.random() * 0.3 + 0.2).toFixed(2)}ms`
-    })
-  }
 
   function verifyClaim(claim: Claim) {
     setSelectedClaim(claim)
@@ -163,7 +120,7 @@ export function BizLensDemo() {
             From raw CSV files to a decision you can <span className="font-serif italic font-normal text-white">defend</span>.
           </h2>
           <p className="mt-6 max-w-md text-base leading-relaxed text-zinc-400">
-            Fully functional live demo powered by indexed CSV database files. Filter transactions, inspect raw CSV code, or run live SQL queries.
+            Upload any spreadsheet. BizLens indexes the data, builds a live dashboard, and lets you inspect every raw record.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -197,25 +154,6 @@ export function BizLensDemo() {
               ))}
             </div>
           )}
-
-          {/* Quick Query Actions */}
-          <div className="mt-8 rounded-xl border border-zinc-800/80 bg-[#121319]/80 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-              <Terminal className="size-4 text-zinc-300" /> Quick SQL Query Templates
-            </p>
-            <div className="mt-3 flex flex-col gap-2">
-              {sampleQueries.map((q) => (
-                <button 
-                  key={q.name} 
-                  onClick={() => { setDemoTab('sql'); runCustomSql(q.query) }} 
-                  className="flex items-center justify-between rounded-lg border border-zinc-800 bg-[#171822] px-3.5 py-2.5 text-left text-xs text-zinc-300 hover:border-zinc-600 hover:text-white transition"
-                >
-                  <span className="font-medium">{q.name}</span>
-                  <ChevronRight className="size-3.5 text-zinc-500" />
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Right Column: Multi-Tab Functional Dashboard */}
@@ -234,12 +172,6 @@ export function BizLensDemo() {
                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition ${demoTab === 'csv' ? 'bg-white text-black font-semibold' : 'text-zinc-400 hover:text-white'}`}
               >
                 <Database className="size-3.5" /> Raw CSV
-              </button>
-              <button 
-                onClick={() => setDemoTab('sql')} 
-                className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition ${demoTab === 'sql' ? 'bg-white text-black font-semibold' : 'text-zinc-400 hover:text-white'}`}
-              >
-                <Code className="size-3.5" /> SQL Engine
               </button>
             </div>
 
@@ -331,86 +263,6 @@ export function BizLensDemo() {
                 </div>
               </div>
 
-              {/* Filters & Live Ledger Data Table */}
-              <div className="mt-6 border-t border-zinc-800/80 pt-6">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Verified Ledger Records ({filteredLedger.length})</p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-2.5 size-3.5 text-zinc-500" />
-                      <input 
-                        type="text"
-                        placeholder="Search ledger..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="rounded-lg border border-zinc-800 bg-[#161720] pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
-                      />
-                    </div>
-
-                    <select 
-                      value={deptFilter} 
-                      onChange={(e) => setDeptFilter(e.target.value)}
-                      className="rounded-lg border border-zinc-800 bg-[#161720] px-3 py-1.5 text-xs text-zinc-300 focus:outline-none"
-                    >
-                      <option value="all">All Depts</option>
-                      <option value="Sales">Sales</option>
-                      <option value="Marketing">Marketing</option>
-                      <option value="Engineering">Engineering</option>
-                      <option value="Consulting">Consulting</option>
-                    </select>
-
-                    <select 
-                      value={statusFilter} 
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="rounded-lg border border-zinc-800 bg-[#161720] px-3 py-1.5 text-xs text-zinc-300 focus:outline-none"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="verified">Verified Only</option>
-                      <option value="conflict">Conflicts Only</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Table */}
-                <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-[#161720]">
-                  <table className="w-full text-left text-xs">
-                    <thead className="border-b border-zinc-800 bg-[#1c1d27] text-zinc-400 font-mono text-[10.5px] uppercase tracking-wider">
-                      <tr>
-                        <th className="p-3">TX ID</th>
-                        <th className="p-3">Date</th>
-                        <th className="p-3">Category</th>
-                        <th className="p-3">Dept</th>
-                        <th className="p-3">Revenue</th>
-                        <th className="p-3">Expense</th>
-                        <th className="p-3">Status</th>
-                        <th className="p-3">Source File</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                      {filteredLedger.map((row) => (
-                        <tr key={row.transaction_id} className="hover:bg-[#1f202b] transition">
-                          <td className="p-3 font-mono font-medium text-white">{row.transaction_id}</td>
-                          <td className="p-3 text-zinc-400">{row.date}</td>
-                          <td className="p-3 font-medium text-white">{row.category}</td>
-                          <td className="p-3 text-zinc-400">{row.department}</td>
-                          <td className="p-3 font-semibold text-white">${row.revenue.toLocaleString()}</td>
-                          <td className="p-3 text-zinc-400">${row.expense.toLocaleString()}</td>
-                          <td className="p-3">
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${row.status === 'verified' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
-                              {row.status === 'verified' ? <Check className="size-3" /> : <CircleAlert className="size-3" />}
-                              {row.status}
-                            </span>
-                          </td>
-                          <td className="p-3 font-mono text-zinc-400">{row.source_file}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </div>
           )}
 
@@ -478,72 +330,7 @@ export function BizLensDemo() {
             </div>
           )}
 
-          {/* TAB 3: SQL & QUERY CONSOLE */}
-          {demoTab === 'sql' && (
-            <div className="p-6">
-              <div className="rounded-xl border border-zinc-800 bg-[#0d0e12] p-4">
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
-                  <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                    <Terminal className="size-4 text-emerald-400" /> Interactive SQL Query Executor
-                  </span>
-                  <span className="text-xs font-mono text-zinc-500">Latency: {sqlResults.executionTime}</span>
-                </div>
 
-                <div className="mt-3">
-                  <textarea 
-                    value={sqlQuery}
-                    onChange={(e) => setSqlQuery(e.target.value)}
-                    rows={3}
-                    className="w-full bg-transparent text-xs font-mono text-white focus:outline-none resize-none leading-relaxed"
-                  />
-                </div>
-
-                <div className="mt-3 flex justify-end">
-                  <button 
-                    onClick={() => runCustomSql(sqlQuery)}
-                    className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-black transition hover:bg-zinc-200"
-                  >
-                    Execute Query <Play className="size-3 fill-current" />
-                  </button>
-                </div>
-              </div>
-
-              {/* SQL Result Output */}
-              <div className="mt-6">
-                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Query Results ({sqlResults.count} Rows Returned)</p>
-                <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-[#161720]">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead className="border-b border-zinc-800 bg-[#1c1d27] text-zinc-400 uppercase">
-                      <tr>
-                        <th className="p-3">TX ID</th>
-                        <th className="p-3">Category</th>
-                        <th className="p-3">Dept</th>
-                        <th className="p-3">Revenue</th>
-                        <th className="p-3">Expense</th>
-                        <th className="p-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                      {sqlResults.data.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-[#1f202b]">
-                          <td className="p-3 text-white font-medium">{row.transaction_id}</td>
-                          <td className="p-3">{row.category}</td>
-                          <td className="p-3">{row.department}</td>
-                          <td className="p-3 font-semibold text-white">${row.revenue?.toLocaleString()}</td>
-                          <td className="p-3">${row.expense?.toLocaleString()}</td>
-                          <td className="p-3">
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${row.status === 'verified' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                              {row.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
         </motion.div>
       </div>
 
@@ -766,76 +553,57 @@ export function BizLensDemo() {
             })}
           </div>
 
-          {/* Node Execution State Telemetry & Result Panel */}
-          <div className="mt-8 grid gap-6 lg:grid-cols-12 lg:items-center pt-6 border-t border-zinc-800/80">
-            {/* Left Console Log Output */}
-            <div className="lg:col-span-6 rounded-xl border border-zinc-800 bg-[#0d0e12] p-5 font-mono text-xs">
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80 mb-3">
-                <span className="text-zinc-400 text-[11px] font-bold uppercase tracking-wider flex items-center gap-2">
-                  <Terminal className="size-3.5 text-zinc-400" /> Pipeline Telemetry Log
-                </span>
-                <span className="text-emerald-400 text-[10px]">STATUS: ACTIVE (24ms)</span>
-              </div>
+          {/* Pipeline Result Panel */}
+          <div className="mt-8 pt-6 border-t border-zinc-800/80">
+            {pipelineScenario === 'verified' ? (
+              <motion.div 
+                key="verified"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-xl border-2 border-emerald-500/40 bg-emerald-500/10 p-6 backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.15)]"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-300">
+                    <CheckCircle2 className="size-4 text-emerald-400" /> VERIFIED CLAIM
+                  </span>
+                  <span className="font-mono text-2xl font-bold text-emerald-400">96% CONFIDENCE</span>
+                </div>
 
-              <div className="space-y-2 text-zinc-300 leading-relaxed text-[11px]">
-                <p><span className="text-zinc-500">[00:01.02]</span> Ingesting <span className="text-white">q3_finance_ledger.csv</span> & <span className="text-white">crm_export_q3.csv</span> (1.4M rows)</p>
-                <p><span className="text-zinc-500">[00:01.18]</span> Pandas schema normalization complete. Columns aligned: [revenue, expense, date].</p>
-                <p><span className="text-zinc-500">[00:01.35]</span> ChromaDB retrieved 12 relevant chunks (cosine similarity = 0.96).</p>
-                <p><span className="text-zinc-500">[00:01.52]</span> Google Gemini 2.5 Flash synthesis output: <span className="text-emerald-400 font-semibold">{pipelineScenario === 'verified' ? '"Revenue increased 18.6% to $2.84M in Q3 2024."' : '"Q3 Enterprise Renewal ARR total is $184,000."'}</span></p>
-                <p><span className="text-zinc-500">[00:01.88]</span> SHAP feature math audit: {pipelineScenario === 'verified' ? 'Variance < 0.2%. Cross-check PASS.' : 'CRITICAL: Discrepancy between CRM (Q3) and Board PDF (Q4).'}</p>
-              </div>
-            </div>
+                <h3 className="mt-4 text-xl font-bold text-white">&quot;Revenue increased 18.6% to $2.84M in Q3 2024.&quot;</h3>
+                <p className="mt-2 text-sm leading-relaxed text-emerald-200/80">
+                  Math check: ($2.84M − $2.39M) / $2.39M = +18.8% growth, confirmed across 2 independent sources within 0.2% tolerance.
+                </p>
 
-            {/* Right Live Decision Result Card */}
-            <div className="lg:col-span-6">
-              {pipelineScenario === 'verified' ? (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-xl border-2 border-emerald-500/40 bg-emerald-500/10 p-6 backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.15)]"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-300">
-                      <CheckCircle2 className="size-4 text-emerald-400" /> VERIFIED CLAIM
-                    </span>
-                    <span className="font-mono text-2xl font-bold text-emerald-400">96% CONFIDENCE</span>
-                  </div>
+                <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-emerald-500/20 text-[11px] font-mono">
+                  <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">q3_finance_ledger.csv · Row 2</span>
+                  <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">crm_export_q3.csv · Deals 801-803</span>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="conflict"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-xl border-2 border-amber-500/40 bg-amber-500/10 p-6 backdrop-blur-xl shadow-[0_0_40px_rgba(245,158,11,0.15)]"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-300">
+                    <AlertTriangle className="size-4 text-amber-400" /> CONFLICT DETECTED
+                  </span>
+                  <span className="font-mono text-2xl font-bold text-amber-400">61% CONFIDENCE</span>
+                </div>
 
-                  <h3 className="mt-4 text-xl font-bold text-white">"Revenue increased 18.6% to $2.84M in Q3 2024."</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-emerald-200/80">
-                    Math check confirmed: ($2.84M - $2.39M) / $2.39M = +18.8% growth aligned across 2 independent sources within 0.2% tolerance.
-                  </p>
+                <h3 className="mt-4 text-xl font-bold text-white">&quot;Enterprise Renewal Timing Discrepancy ($184,000)&quot;</h3>
+                <p className="mt-2 text-sm leading-relaxed text-amber-200/80">
+                  Source Disagreement: CRM export lists renewal in Q3 2024 (Deal #804), but Board Minutes (Page 7) mark it pushed to Q4 2024.
+                </p>
 
-                  <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-emerald-500/20 text-[11px] font-mono">
-                    <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">q3_finance_ledger.csv:L2</span>
-                    <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">crm_export_q3.csv:DEAL-801-803</span>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-xl border-2 border-amber-500/40 bg-amber-500/10 p-6 backdrop-blur-xl shadow-[0_0_40px_rgba(245,158,11,0.15)]"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-300">
-                      <AlertTriangle className="size-4 text-amber-400" /> CONFLICT DETECTED
-                    </span>
-                    <span className="font-mono text-2xl font-bold text-amber-400">61% CONFIDENCE</span>
-                  </div>
-
-                  <h3 className="mt-4 text-xl font-bold text-white">"Enterprise Renewal Timing Discrepancy ($184,000)"</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-amber-200/80">
-                    Source Disagreement: CRM export lists renewal in Q3 2024 (Deal #804), but Board Minutes (Page 7) mark renewal pushed to Q4 2024.
-                  </p>
-
-                  <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-amber-500/20 text-[11px] font-mono">
-                    <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">crm_export_q3.csv (Q3 2024)</span>
-                    <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">board_report.pdf (Q4 2024)</span>
-                  </div>
-                </motion.div>
-              )}
-            </div>
+                <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-amber-500/20 text-[11px] font-mono">
+                  <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">crm_export_q3.csv (Q3 2024)</span>
+                  <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">board_report.pdf (Q4 2024)</span>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
