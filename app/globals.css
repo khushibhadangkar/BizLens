@@ -1,0 +1,117 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --font-serif: var(--font-serif), Georgia, serif;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+}
+
+:root {
+  color-scheme: dark;
+  --background: #080808;
+  --foreground: #f4f4f5;
+  --card: #121319;
+  --card-foreground: #f4f4f5;
+  --popover: #121319;
+  --popover-foreground: #f4f4f5;
+  --primary: #ffffff;
+  --primary-foreground: #080808;
+  --secondary: #1a1b22;
+  --secondary-foreground: #f4f4f5;
+  --muted: #181920;
+  --muted-foreground: #a1a1aa;
+  --accent: #3b82f6;
+  --accent-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: #181920;
+  --ring: #ffffff;
+  --destructive: #ef4444;
+}
+
+* {
+  @apply border-zinc-800/80 outline-ring/50;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: #080808;
+}
+
+body {
+  background: #080808;
+  color: #f4f4f5;
+  font-family: var(--font-sans), sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.font-sans {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.eyebrow {
+  @apply text-[11.5px] uppercase tracking-[0.22em] font-medium text-zinc-400;
+}
+
+.glass-panel {
+  background: rgba(18, 19, 25, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+}
+
+.status-pill {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-emerald-400;
+}
+
+.step-button {
+  @apply flex items-center gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/60 px-4 py-3.5 text-left text-xs font-medium text-zinc-400 transition hover:border-zinc-700 hover:text-white;
+}
+
+.step-button span {
+  @apply font-mono text-[11px] text-zinc-500;
+}
+
+.step-active {
+  @apply border-white/20 bg-white/10 text-white shadow-lg;
+}
+
+.step-active span {
+  @apply text-white font-bold;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
