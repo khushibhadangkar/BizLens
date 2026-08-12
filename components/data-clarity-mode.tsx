@@ -753,13 +753,316 @@ export function DataClarityMode() {
         </div>
       </div>
 
-      {/* Placeholder for Phase 4 sections */}
-      <div className="mx-auto max-w-7xl px-6 pb-32 md:px-12">
-        <div className="text-center text-sm text-zinc-400">
-          Copilot and Verification sections will be added in Phase 4
+      {/* Verification & Evidence Trail Section - THE CORE DIFFERENTIATOR */}
+      <div className="border-t border-blue-100/50 bg-white py-24 md:py-32">
+        <div className="mx-auto max-w-7xl px-6 md:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            viewport={{ once: true, margin: '-100px' }}
+            className="text-center"
+          >
+            <h3 className="text-3xl font-semibold tracking-[-0.02em] text-zinc-900 sm:text-4xl md:text-5xl">
+              Every insight, <span className="font-serif italic font-normal text-blue-600">independently verified</span>
+            </h3>
+            <p className="mt-4 text-base leading-relaxed text-zinc-600 sm:text-lg">
+              Trace each claim back to its source. See the evidence. Identify conflicts before they become decisions.
+            </p>
+          </motion.div>
+
+          {/* Verification Flow Demonstration */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: 'easeOut' }}
+            viewport={{ once: true, margin: '-100px' }}
+            className="mt-12"
+          >
+            <VerificationFlow />
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Final Closing Statement */}
+      <div className="bg-gradient-to-b from-blue-50/30 to-white py-32 md:py-40">
+        <div className="mx-auto max-w-4xl px-6 text-center md:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            viewport={{ once: true }}
+          >
+            <p className="text-4xl font-semibold leading-tight tracking-[-0.02em] text-zinc-900 sm:text-5xl md:text-6xl">
+              Stop searching through data.<br />
+              Start making <span className="font-serif italic font-normal text-blue-600">decisions</span>.
+            </p>
+            <p className="mt-8 text-xl font-medium uppercase tracking-[0.2em] text-zinc-500">
+              BIZLENS — AI-Powered Decision Intelligence
+            </p>
+          </motion.div>
         </div>
       </div>
     </section>
+  )
+}
+
+/**
+ * VerificationFlow Component
+ *
+ * Demonstrates the verification process using existing claims from novaRetail.
+ * Shows claim → evidence → verification status flow.
+ * All data comes from existing repository data (novaRetail.claims).
+ */
+function VerificationFlow() {
+  const [selectedClaim, setSelectedClaim] = useState<typeof novaRetail.claims[number] | null>(null)
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      {/* Claims List */}
+      <div className="space-y-4">
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold uppercase tracking-wider text-zinc-700">
+            Intelligence Claims
+          </h4>
+          <p className="mt-2 text-sm text-zinc-500">
+            Select a claim to view its evidence trail
+          </p>
+        </div>
+
+        {novaRetail.claims.map((claim, index) => (
+          <motion.button
+            key={claim.id}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1, ease: 'easeOut' }}
+            viewport={{ once: true }}
+            onClick={() => setSelectedClaim(claim)}
+            className={`
+              group w-full text-left transition-all duration-300
+              ${selectedClaim?.id === claim.id ? 'scale-[1.02]' : ''}
+            `}
+          >
+            <GlassPanel
+              className={`
+                p-5 transition-all duration-300
+                ${selectedClaim?.id === claim.id
+                  ? 'border-blue-400/80 bg-gradient-to-br from-blue-50 to-white shadow-md'
+                  : 'hover:border-blue-300 hover:shadow-sm'
+                }
+              `}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    {claim.status === 'verified' ? (
+                      <ShieldCheck className="size-5 shrink-0 text-emerald-600" />
+                    ) : (
+                      <AlertTriangle className="size-5 shrink-0 text-amber-500" />
+                    )}
+                    <h5 className="font-semibold text-zinc-900">{claim.label}</h5>
+                  </div>
+                  <p className="mt-2 text-sm text-zinc-600">{claim.detail}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <span className="text-lg font-bold text-blue-600">{claim.value}</span>
+                    <span
+                      className={`
+                        rounded-full px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider
+                        ${claim.status === 'verified'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-amber-100 text-amber-700'
+                        }
+                      `}
+                    >
+                      {claim.status === 'verified' ? '✓ Verified' : '⚠ Conflict'}
+                    </span>
+                    <span className="text-xs text-zinc-500">{claim.confidence}% confidence</span>
+                  </div>
+                </div>
+                <ChevronRight
+                  className={`
+                    size-5 shrink-0 transition-transform text-zinc-400
+                    ${selectedClaim?.id === claim.id ? 'rotate-90 text-blue-600' : ''}
+                  `}
+                />
+              </div>
+            </GlassPanel>
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Evidence Panel */}
+      <div className="lg:sticky lg:top-6 lg:self-start">
+        <AnimatePresence mode="wait">
+          {selectedClaim ? (
+            <motion.div
+              key={selectedClaim.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            >
+              <GlassPanel className="border-blue-200/80 p-6">
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold uppercase tracking-wider text-zinc-700">
+                    Evidence Trail
+                  </h4>
+                  <p className="mt-2 text-xs text-zinc-500">
+                    Tracing {selectedClaim.label}
+                  </p>
+                </div>
+
+                {/* Verification Flow Diagram */}
+                <div className="space-y-6">
+                  {/* Step 1: Claim */}
+                  <div className="relative pl-8">
+                    <div className="absolute left-0 top-1 flex size-6 items-center justify-center rounded-full border-2 border-blue-400 bg-blue-50">
+                      <span className="text-xs font-bold text-blue-600">1</span>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-semibold text-zinc-700">Claim</h5>
+                      <p className="mt-1 text-sm text-zinc-900">{selectedClaim.label}</p>
+                      <p className="mt-1 text-xs text-zinc-500">Value: {selectedClaim.value}</p>
+                    </div>
+                  </div>
+
+                  {/* Connector */}
+                  <div className="relative pl-8">
+                    <div className="absolute left-3 top-0 h-full w-[2px] bg-gradient-to-b from-blue-300 to-blue-200" />
+                  </div>
+
+                  {/* Step 2: Evidence Sources */}
+                  <div className="relative pl-8">
+                    <div
+                      className={`
+                        absolute left-0 top-1 flex size-6 items-center justify-center rounded-full border-2 bg-white
+                        ${selectedClaim.status === 'verified'
+                          ? 'border-emerald-400 bg-emerald-50'
+                          : 'border-amber-400 bg-amber-50'
+                        }
+                      `}
+                    >
+                      <span
+                        className={`
+                          text-xs font-bold
+                          ${selectedClaim.status === 'verified' ? 'text-emerald-600' : 'text-amber-600'}
+                        `}
+                      >
+                        2
+                      </span>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-semibold text-zinc-700">Evidence Sources</h5>
+                      <div className="mt-2 space-y-2">
+                        {selectedClaim.evidence.map((evidence, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-start gap-2 rounded-lg border border-zinc-200 bg-zinc-50/50 p-2.5"
+                          >
+                            <FileText className="size-4 shrink-0 text-blue-500" />
+                            <span className="text-xs font-mono text-zinc-700">{evidence}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Connector */}
+                  <div className="relative pl-8">
+                    <div className="absolute left-3 top-0 h-full w-[2px] bg-gradient-to-b from-blue-200 to-transparent" />
+                  </div>
+
+                  {/* Step 3: Verification Result */}
+                  <div className="relative pl-8">
+                    <div
+                      className={`
+                        absolute left-0 top-1 flex size-6 items-center justify-center rounded-full
+                        ${selectedClaim.status === 'verified'
+                          ? 'border-2 border-emerald-500 bg-emerald-500'
+                          : 'border-2 border-amber-500 bg-amber-500'
+                        }
+                      `}
+                    >
+                      {selectedClaim.status === 'verified' ? (
+                        <ShieldCheck className="size-4 text-white" />
+                      ) : (
+                        <AlertTriangle className="size-4 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-semibold text-zinc-700">Verification Result</h5>
+                      <div
+                        className={`
+                          mt-2 rounded-lg p-3
+                          ${selectedClaim.status === 'verified'
+                            ? 'border border-emerald-200 bg-emerald-50/50'
+                            : 'border border-amber-200 bg-amber-50/50'
+                          }
+                        `}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`
+                              text-sm font-semibold
+                              ${selectedClaim.status === 'verified' ? 'text-emerald-700' : 'text-amber-700'}
+                            `}
+                          >
+                            {selectedClaim.status === 'verified' ? '✓ VERIFIED' : '⚠ CONFLICT DETECTED'}
+                          </span>
+                          <span
+                            className={`
+                              text-xs font-mono
+                              ${selectedClaim.status === 'verified' ? 'text-emerald-600' : 'text-amber-600'}
+                            `}
+                          >
+                            {selectedClaim.confidence}%
+                          </span>
+                        </div>
+                        {selectedClaim.status === 'conflict' && (
+                          <p className="mt-2 text-xs text-amber-700">
+                            Sources disagree. Manual review required.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Data Provenance */}
+                <div className="mt-6 rounded-lg border border-blue-100 bg-blue-50/30 p-4">
+                  <div className="flex items-start gap-3">
+                    <Database className="size-5 shrink-0 text-blue-600" />
+                    <div>
+                      <h6 className="text-xs font-semibold uppercase tracking-wider text-blue-700">
+                        Data Provenance
+                      </h6>
+                      <p className="mt-1 text-xs leading-relaxed text-zinc-600">
+                        This verification uses existing data from <strong>novaRetail.claims</strong>.
+                        Evidence references are traced to source files in the data model.
+                        {selectedClaim.status === 'conflict' && ' Conflict status comes from the existing data structure.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </GlassPanel>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex h-full min-h-[400px] items-center justify-center"
+            >
+              <GlassPanel className="p-12 text-center">
+                <ShieldCheck className="mx-auto size-12 text-zinc-300" />
+                <p className="mt-4 text-sm text-zinc-500">
+                  Select a claim to view its evidence trail
+                </p>
+              </GlassPanel>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   )
 }
 
