@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ChevronRight, Hexagon, Menu, ShieldCheck, X } from 'lucide-react'
 import { BizLensScene } from '@/components/bizlens-scene'
 import { BizLensDemo } from '@/components/bizlens-demo'
+import { DataClarityMode } from '@/components/data-clarity-mode'
 
 function scrollTo(id: string) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }) }
 
@@ -136,6 +137,8 @@ export default function Page() {
       </section>
 
       <BizLensDemo />
+
+      <DataClarityMode />
 
       <footer className="border-t border-zinc-800 bg-[#080808] px-6 py-8 md:px-12">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-3 text-xs text-zinc-400 sm:flex-row">
