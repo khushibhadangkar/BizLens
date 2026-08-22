@@ -1,0 +1,32 @@
+# BizLens Backend — Docker Compose (Development)
+#
+# Provides a local PostgreSQL database for development.
+# The backend connects to this database via DATABASE_URL in .env.
+#
+# Usage:
+#   docker compose up -d db        # Start only the database
+#   docker compose up              # Start database + backend
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: bizlens
+      POSTGRES_PASSWORD: bizlens_dev
+      POSTGRES_DB: bizlens
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
