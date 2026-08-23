@@ -43,23 +43,25 @@ export const parsedLedgerData: LedgerRow[] = [
   { transaction_id: 'TX-1007', date: '2024-09-28', category: 'Unverified Renewal', department: 'Sales', revenue: 184000, expense: 0, net_margin: '100%', status: 'conflict', source_file: 'crm_export_q3.csv' }
 ]
 
+const mockClaims = [
+  { id: 'revenue', label: 'Revenue is accelerating', value: '+18.6%', confidence: 96, status: 'verified', detail: 'Revenue climbed from $2.39M to $2.84M across the period.', evidence: ['q3_finance_ledger.csv · Line 2 (TX-1001)', 'crm_export_q3.csv · Deal 801-803', 'board_report.pdf · Page 4'] },
+  { id: 'renewals', label: 'Renewals need review', value: '$184k gap', confidence: 61, status: 'conflict', detail: 'CRM export and board report disagree on enterprise renewal timing.', evidence: ['crm_export_q3.csv · Deal 804 (Nova Global)', 'board_report.pdf · Page 7 Section B'] },
+  { id: 'margin', label: 'Paid acquisition compressed margin', value: '-2.4 pts', confidence: 91, status: 'verified', detail: 'Paid acquisition expense of $165k (TX-1004) explains May margin shift.', evidence: ['q3_finance_ledger.csv · Line 5 (TX-1004)', 'campaign_export.csv · Campaign #402'] },
+] as const
+
 export const novaRetail = {
   company: 'Nova Retail Group',
   period: 'Q3 2024',
   revenue: '$2.84M',
   growth: '+18.6%',
   margin: '34.2%',
-  trust: 96,
+  trust: Math.round(mockClaims.reduce((acc, c) => acc + c.confidence, 0) / mockClaims.length),
   sources: [
     { name: 'q3_finance_ledger.csv', type: 'Finance CSV', updated: '2m ago', status: 'verified', rows: 7 },
     { name: 'crm_export_q3.csv', type: 'CRM CSV', updated: '4m ago', status: 'verified', rows: 5 },
     { name: 'board_report.pdf', type: 'Board PDF', updated: '12m ago', status: 'conflict', rows: 14 },
   ],
-  claims: [
-    { id: 'revenue', label: 'Revenue is accelerating', value: '+18.6%', confidence: 96, status: 'verified', detail: 'Revenue climbed from $2.39M to $2.84M across the period.', evidence: ['q3_finance_ledger.csv · Line 2 (TX-1001)', 'crm_export_q3.csv · Deal 801-803', 'board_report.pdf · Page 4'] },
-    { id: 'renewals', label: 'Renewals need review', value: '$184k gap', confidence: 61, status: 'conflict', detail: 'CRM export and board report disagree on enterprise renewal timing.', evidence: ['crm_export_q3.csv · Deal 804 (Nova Global)', 'board_report.pdf · Page 7 Section B'] },
-    { id: 'margin', label: 'Paid acquisition compressed margin', value: '-2.4 pts', confidence: 91, status: 'verified', detail: 'Paid acquisition expense of $165k (TX-1004) explains May margin shift.', evidence: ['q3_finance_ledger.csv · Line 5 (TX-1004)', 'campaign_export.csv · Campaign #402'] },
-  ],
+  claims: mockClaims,
   forecast: [
     { month: 'Jul', actual: 485, forecast: 470, net_profit: 365 },
     { month: 'Aug', actual: 620, forecast: 610, net_profit: 480 },
@@ -74,6 +76,22 @@ export type Claim = (typeof novaRetail.claims)[number]
 export type Source = (typeof novaRetail.sources)[number]
 
 export const workflowSteps = ['Upload', 'Analyze', 'Retrieve', 'Generate', 'Verify', 'Decide'] as const
+
+export const workflowDescriptions = [
+  'Bring the source trail into one workspace.',
+  'Normalize fields, dates, and business definitions.',
+  'Retrieve supporting context from every connected file.',
+  'Generate dashboards, forecasts, and atomic claims.',
+  'Check every claim against independent evidence.',
+  'Turn the verified signal into a focused next action.'
+] as const
+
+export const departmentExpenses = [
+  { dept: 'Sales', exp: 440 },
+  { dept: 'Mktg', exp: 165 },
+  { dept: 'Eng', exp: 84 },
+  { dept: 'Consult', exp: 95 },
+] as const
 
 export const copilotAnswers: Record<string, string> = {
   'Why did margin move?': 'Margin compressed 2.4 points in May due to $165k spent on paid performance ads (TX-1004 in q3_finance_ledger.csv). The P&L and campaign logs correlate 100%.',

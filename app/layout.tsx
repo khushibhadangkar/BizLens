@@ -53,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${instrumentSerif.variable} ${plusJakartaSans.variable}`}>
-      <body className="antialiased font-sans bg-[#080808] text-foreground">
+      <body className="antialiased font-sans bg-background text-foreground transition-colors duration-300">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
