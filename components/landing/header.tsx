@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { Hexagon, Menu, X } from 'lucide-react'
-
-function scrollTo(id: string) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }) }
+import Link from 'next/link'
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -21,12 +20,12 @@ export function Header() {
         <a href="#copilot" className="transition hover:text-foreground">AI Copilot</a>
       </nav>
       <div className="flex items-center gap-4">
-        <button 
-          onClick={() => scrollTo('workspace')} 
+        <Link
+          href="/login"
           className="hidden rounded-lg border border-border bg-primary px-4.5 py-2 text-[13.5px] font-medium text-primary-foreground shadow-sm transition hover:opacity-90 sm:block"
         >
-          Explore BizLens
-        </button>
+          Sign In
+        </Link>
         <button aria-label="Toggle navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)} className="rounded-md border border-border p-2 text-muted-foreground lg:hidden hover:bg-surface-muted hover:text-foreground transition">
           {menuOpen ? <X /> : <Menu />}
         </button>
