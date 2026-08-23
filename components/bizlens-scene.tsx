@@ -7,15 +7,15 @@ import * as THREE from 'three'
 
 const nodes = [
   // Upper Left Sphere
-  { position: [-3.0, 1.3, -0.6] as [number, number, number], scale: 1.0, color: '#1c3d64', opacity: 0.72 },
+  { position: [-3.0, 1.3, -0.6] as [number, number, number], scale: 1.0, color: '#1c3d64', opacity: 0.25 },
   // Top Center Sphere
-  { position: [0.4, 2.05, -0.8] as [number, number, number], scale: 0.76, color: '#3d495a', opacity: 0.68 },
+  { position: [0.4, 2.05, -0.8] as [number, number, number], scale: 0.76, color: '#3d495a', opacity: 0.2 },
   // Top Right Sphere
-  { position: [3.1, 1.25, -0.6] as [number, number, number], scale: 1.1, color: '#1f3652', opacity: 0.68 },
+  { position: [3.1, 1.25, -0.6] as [number, number, number], scale: 1.1, color: '#1f3652', opacity: 0.2 },
   // Center Bottom Sphere (AMBER/GOLD)
-  { position: [0.05, -1.35, -0.4] as [number, number, number], scale: 1.45, color: '#9e6425', opacity: 0.78 },
+  { position: [0.05, -1.35, -0.4] as [number, number, number], scale: 1.45, color: '#9e6425', opacity: 0.35 },
   // Lower Right Sphere
-  { position: [3.35, -1.3, -0.5] as [number, number, number], scale: 1.15, color: '#16385e', opacity: 0.72 },
+  { position: [3.35, -1.3, -0.5] as [number, number, number], scale: 1.15, color: '#16385e', opacity: 0.25 },
 ]
 
 function WireNode({ node, index }: { node: typeof nodes[number]; index: number }) {
@@ -64,21 +64,21 @@ function Network() {
         points={[[-3.0, 1.3, -0.6], [0.4, 2.05, -0.8], [3.1, 1.25, -0.6]]}
         color="#1d385c"
         transparent
-        opacity={0.5}
+        opacity={0.15}
         lineWidth={0.5}
       />
       <Line
         points={[[-3.0, 1.3, -0.6], [0.05, -1.35, -0.4], [3.35, -1.3, -0.5]]}
         color="#2a3d54"
         transparent
-        opacity={0.45}
+        opacity={0.15}
         lineWidth={0.5}
       />
       <Line
         points={[[0.4, 2.05, -0.8], [3.1, 1.25, -0.6], [3.35, -1.3, -0.5]]}
         color="#1d385c"
         transparent
-        opacity={0.4}
+        opacity={0.15}
         lineWidth={0.5}
       />
       
@@ -104,7 +104,7 @@ export function BizLensScene() {
         <ambientLight intensity={0.9} />
         <Network />
       </Canvas>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,transparent_10%,#080808_95%)] opacity-80" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,transparent_10%,var(--background)_100%)] opacity-100" />
     </div>
   )
 }

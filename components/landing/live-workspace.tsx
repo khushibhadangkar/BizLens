@@ -154,9 +154,9 @@ export function LiveWorkspace() {
                   <p className="mt-1 text-[11px] text-muted-foreground">Net Profit {kpiMetrics.netProfit}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-surface-muted/50 p-4">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Accuracy Score</p>
-                  <p className="mt-2 text-2xl font-bold text-foreground tracking-tight">96%</p>
-                  <p className="mt-1 text-[11px] text-success font-medium">Independent Check</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Avg Claim Confidence</p>
+                  <p className="mt-2 text-2xl font-bold text-foreground tracking-tight">{novaRetail.trust}%</p>
+                  <p className="mt-1 text-[11px] text-success font-medium">Demo Check</p>
                 </div>
                 <div className="rounded-xl border border-border bg-surface-muted/50 p-4">
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">Flagged Conflicts</p>

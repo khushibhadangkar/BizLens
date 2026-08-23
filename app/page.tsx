@@ -7,6 +7,7 @@ import { IntelligencePipeline } from '@/components/landing/intelligence-pipeline
 import { SystemArchitecture } from '@/components/landing/system-architecture'
 import { DecisionBrief } from '@/components/landing/decision-brief'
 import { BizLensScene } from '@/components/bizlens-scene'
+import { novaRetail } from '@/lib/bizlens-data'
 
 export default function Page() {
   return (
@@ -75,27 +76,27 @@ export default function Page() {
               <div className="w-full max-w-[350px] rounded-2xl border border-border bg-surface/90 p-6 shadow-2xl backdrop-blur-xl">
                 <div className="flex items-center gap-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                   <ShieldCheck className="size-5 text-success stroke-[1.75]" />
-                  <span>TRUST SCORE</span>
+                  <span>AVERAGE CLAIM CONFIDENCE</span>
                 </div>
                 <div className="mt-4 text-[58px] font-bold leading-none tracking-tight text-foreground">
-                  96%
+                  {novaRetail.trust}%
                 </div>
                 <p className="mt-2 text-[14px] text-muted-foreground">
-                  Verified Accuracy
+                  Demo verification
                 </p>
 
                 <div className="mt-6 grid grid-cols-3 gap-2.5">
                   <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-muted/70 py-3.5 px-2 text-center">
-                    <b className="text-lg font-bold text-foreground leading-none">3</b>
-                    <span className="mt-1.5 text-[9px] uppercase tracking-[0.16em] text-muted-foreground">SOURCES</span>
+                    <b className="text-lg font-bold text-foreground leading-none">{novaRetail.sources.length}</b>
+                    <span className="mt-1.5 text-[9px] uppercase tracking-[0.16em] text-muted-foreground">DEMO SOURCES</span>
                   </div>
                   <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-muted/70 py-3.5 px-2 text-center">
                     <b className="text-lg font-bold text-foreground leading-none">1.2s</b>
-                    <span className="mt-1.5 text-[9px] uppercase tracking-[0.16em] text-muted-foreground">ANALYSIS</span>
+                    <span className="mt-1.5 text-[9px] uppercase tracking-[0.16em] text-muted-foreground">SIMULATED</span>
                   </div>
                   <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface-muted/70 py-3.5 px-2 text-center">
-                    <b className="text-lg font-bold text-foreground leading-none">24</b>
-                    <span className="mt-1.5 text-[9px] uppercase tracking-[0.16em] text-muted-foreground">INSIGHTS</span>
+                    <b className="text-lg font-bold text-foreground leading-none">{novaRetail.claims.length}</b>
+                    <span className="mt-1.5 text-[9px] uppercase tracking-[0.16em] text-muted-foreground">MOCK CLAIMS</span>
                   </div>
                 </div>
 
