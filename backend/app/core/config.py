@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_anon_key: str = ""
     supabase_jwt_secret: str = ""
+    supabase_service_role_key: str = ""
+
+    # --- Storage ---
+    storage_bucket_name: str = "uploads"
+    max_upload_size_bytes: int = 10 * 1024 * 1024  # 10 MB
 
     # --- CORS ---
     cors_origins: str = "http://localhost:3000"

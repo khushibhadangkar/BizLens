@@ -64,6 +64,10 @@ def create_app() -> FastAPI:
     # --- Routers ---
     app.include_router(health.router, prefix="/api/v1")
 
+    from app.api.v1 import files
+
+    app.include_router(files.router, prefix="/api/v1/files")
+
     return app
 
 

@@ -14,3 +14,12 @@ class AppEnvironment(StrEnum):
     DEVELOPMENT = "development"
     STAGING = "staging"
     PRODUCTION = "production"
+
+
+class ProcessingStatus(StrEnum):
+    """Status of an uploaded file."""
+
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
