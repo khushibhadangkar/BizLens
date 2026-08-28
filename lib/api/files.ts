@@ -27,18 +27,41 @@ export const apiFiles = {
     return response.json()
   },
   
-  // BLOCKED: awaiting GET /api/v1/files
   listFiles: async (): Promise<FileRecord[]> => {
-    throw new Error('Not implemented')
+    const headers = await getAuthHeaders()
+    const response = await fetch(`${API_BASE_URL}/files`, {
+      method: 'GET',
+      headers,
+    })
+    if (!response.ok) {
+      const errorMessage = await parseApiError(response)
+      throw new Error(`Failed to fetch files: ${errorMessage}`)
+    }
+    return response.json()
   },
 
-  // BLOCKED: awaiting GET /api/v1/files/:id
-  getFile: async (): Promise<FileRecord> => {
-    throw new Error('Not implemented')
+  getFile: async (id: string): Promise<FileRecord> => {
+    const headers = await getAuthHeaders()
+    const response = await fetch(`${API_BASE_URL}/files/${id}`, {
+      method: 'GET',
+      headers,
+    })
+    if (!response.ok) {
+      const errorMessage = await parseApiError(response)
+      throw new Error(`Failed to fetch file: ${errorMessage}`)
+    }
+    return response.json()
   },
 
-  // BLOCKED: awaiting DELETE /api/v1/files/:id
-  deleteFile: async (): Promise<void> => {
-    throw new Error('Not implemented')
+  deleteFile: async (id: string): Promise<void> => {
+    const headers = await getAuthHeaders()
+    const response = await fetch(`${API_BASE_URL}/files/${id}`, {
+      method: 'DELETE',
+      headers,
+    })
+    if (!response.ok) {
+      const errorMessage = await parseApiError(response)
+      throw new Error(`Failed to delete file: ${errorMessage}`)
+    }
   },
 }

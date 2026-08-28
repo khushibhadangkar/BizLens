@@ -118,3 +118,89 @@ async def upload_file(
         ) from e
 
     return record
+
+
+@router.get("", response_model=list[FileRecordResponse])
+def list_files(
+    user_id: AuthenticatedUser,
+    db: DbSession,
+) -> list[FileRecord]:
+    """
+    Return all files that belong to the authenticated user, newest first.
+
+    Only the authenticated user's files are returned — owner_id is derived
+    exclusively from the validated JWT, never from request parameters.
+    """
+    return (
+        db.query(FileRecord)
+        .filter(FileRecord.owner_id == user_id)
+        .order_by(FileRecord.created_at.desc())
+        .all()
+    )
+
+
+@router.get("/{file_id}", response_model=FileRecordResponse)
+def get_file(
+    file_id: uuid.UUID,
+    user_id: AuthenticatedUser,
+    db: DbSession,
+) -> FileRecord:
+    """
+    Return a single file record owned by the authenticated user.
+
+    Returns 404 if the file does not exist OR belongs to a different user.
+    This prevents leaking whether another user's UUID exists in the system.
+    """
+    record = (
+        db.query(FileRecord)
+        .filter(FileRecord.id == file_id, FileRecord.owner_id == user_id)
+        .first()
+    )
+    if not record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found.")
+    return record
+
+
+@router.delete("/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_file(
+    file_id: uuid.UUID,
+    user_id: AuthenticatedUser,
+    db: DbSession,
+    storage: StorageDep,
+) -> None:
+    """
+    Delete a file owned by the authenticated user.
+
+    Removes the object from Supabase Storage before deleting the database record.
+    If storage deletion fails the database record is preserved and 500 is returned,
+    keeping the system consistent (no orphaned DB rows pointing to missing objects).
+    """
+    record = (
+        db.query(FileRecord)
+        .filter(FileRecord.id == file_id, FileRecord.owner_id == user_id)
+        .first()
+    )
+    if not record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found.")
+
+    # 1. Remove from storage first; abort and preserve the DB record on failure.
+    try:
+        storage.delete_file(record.storage_path)
+    except Exception as e:
+        logger.error("Storage deletion failed for path=%s: %s", record.storage_path, e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete file from storage.",
+        ) from e
+
+    # 2. Remove the database record.
+    try:
+        db.delete(record)
+        db.commit()
+    except Exception as e:
+        logger.error("Database deletion failed for file_id=%s: %s", file_id, e)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete file record.",
+        ) from e

@@ -2,6 +2,7 @@
 BizLens Backend — Tests for file upload API.
 """
 
+import uuid
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -160,3 +161,174 @@ def test_db_failure_handled_and_storage_rolled_back(client, mock_db, mock_storag
     assert len(mock_storage.deleted_files) == 1
     assert mock_storage.uploaded_files[0] == mock_storage.deleted_files[0]
     mock_db.rollback.assert_called_once()
+
+
+# ===========================================================
+# Phase 2 — GET list, GET single, DELETE
+# ===========================================================
+
+def _make_file_record_mock(owner_id: str = "user-123"):
+    """
+    Build a lightweight mock that Pydantic (from_attributes=True) can serialize
+    as a FileRecordResponse.  All attributes are real Python values.
+    """
+    record = MagicMock()
+    record.id = uuid.uuid4()
+    record.owner_id = owner_id
+    record.original_filename = "test.csv"
+    record.storage_path = f"{owner_id}/{uuid.uuid4()}/test.csv"
+    record.file_type = "csv"
+    record.mime_type = "text/csv"
+    record.file_size = 1024
+    record.status = "PENDING"
+    record.error_message = None
+    record.created_at = datetime.utcnow()
+    record.updated_at = datetime.utcnow()
+    return record
+
+
+# --- GET /api/v1/files ---
+
+def test_list_files_returns_owned_files(client, mock_db):
+    """GET /api/v1/files returns the authenticated user's files."""
+    record = _make_file_record_mock(owner_id="user-123")
+    mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = [record]
+
+    response = client.get("/api/v1/files")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["owner_id"] == "user-123"
+    assert data[0]["original_filename"] == "test.csv"
+
+
+def test_list_files_returns_empty_list_when_no_files(client, mock_db):
+    """GET /api/v1/files returns an empty list when the user has no files."""
+    mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
+
+    response = client.get("/api/v1/files")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_list_files_requires_authentication(mock_db, mock_storage):
+    """GET /api/v1/files returns 401 when no valid token is present."""
+    from app.api.dependencies import get_current_user_id, get_db, get_storage_service
+    from app.main import app as _app
+
+    _app.dependency_overrides.clear()
+    _app.dependency_overrides[get_db] = lambda: mock_db
+    _app.dependency_overrides[get_storage_service] = lambda: mock_storage
+
+    with TestClient(_app) as c:
+        response = c.get("/api/v1/files")
+        assert response.status_code == 401
+
+    _app.dependency_overrides.clear()
+
+
+# --- GET /api/v1/files/{file_id} ---
+
+def test_get_file_returns_owned_file(client, mock_db):
+    """GET /api/v1/files/{id} returns the file when it belongs to the user."""
+    record = _make_file_record_mock()
+    mock_db.query.return_value.filter.return_value.first.return_value = record
+
+    response = client.get(f"/api/v1/files/{record.id}")
+
+    assert response.status_code == 200
+    assert response.json()["owner_id"] == "user-123"
+
+
+def test_get_file_returns_404_for_nonexistent_file(client, mock_db):
+    """GET /api/v1/files/{id} returns 404 for a file that does not exist."""
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    response = client.get(f"/api/v1/files/{uuid.uuid4()}")
+
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
+
+
+def test_get_file_returns_404_for_another_users_file(client, mock_db):
+    """
+    GET /api/v1/files/{id} returns 404 when the file belongs to a different user.
+
+    The query filters by BOTH file_id AND owner_id, so a record owned by another
+    user returns None — identical to a nonexistent file, preventing UUID enumeration.
+    """
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    response = client.get(f"/api/v1/files/{uuid.uuid4()}")
+
+    assert response.status_code == 404
+
+
+# --- DELETE /api/v1/files/{file_id} ---
+
+def test_delete_owned_file_succeeds(client, mock_db, mock_storage):
+    """DELETE /api/v1/files/{id} removes the storage object and DB record."""
+    record = _make_file_record_mock()
+    mock_db.query.return_value.filter.return_value.first.return_value = record
+
+    response = client.delete(f"/api/v1/files/{record.id}")
+
+    assert response.status_code == 204
+    assert record.storage_path in mock_storage.deleted_files
+    mock_db.delete.assert_called_once_with(record)
+    mock_db.commit.assert_called_once()
+
+
+def test_delete_nonexistent_file_returns_404(client, mock_db, mock_storage):
+    """DELETE /api/v1/files/{id} returns 404 for a missing or unowned file."""
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    response = client.delete(f"/api/v1/files/{uuid.uuid4()}")
+
+    assert response.status_code == 404
+    mock_db.delete.assert_not_called()
+
+
+def test_delete_storage_failure_preserves_db_record(client, mock_db, mock_storage):
+    """
+    If storage deletion raises, the DB record must not be deleted.
+
+    This preserves consistency: an orphaned storage object is recoverable via
+    a cleanup job; an orphaned DB row pointing to a missing object is worse.
+    """
+    from app.services.storage import StorageException
+
+    record = _make_file_record_mock()
+    mock_db.query.return_value.filter.return_value.first.return_value = record
+
+    def _failing_delete(path: str) -> None:
+        raise StorageException("simulated storage error")
+
+    mock_storage.delete_file = _failing_delete
+
+    response = client.delete(f"/api/v1/files/{record.id}")
+
+    assert response.status_code == 500
+    mock_db.delete.assert_not_called()
+    mock_db.commit.assert_not_called()
+
+
+def test_delete_ownership_comes_from_jwt_not_request(client, mock_db, mock_storage):
+    """
+    Ownership is derived exclusively from the JWT sub claim.
+
+    There is no request body or path parameter that lets a caller specify
+    owner_id.  The query always filters by the authenticated user's ID.
+    The mock returns None to simulate the WHERE owner_id = 'user-123' clause
+    excluding a file owned by a different user.
+    """
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    # The authenticated user (user-123) tries to delete a file belonging to
+    # another user.  The query finds nothing; the endpoint returns 404.
+    response = client.delete(f"/api/v1/files/{uuid.uuid4()}")
+
+    assert response.status_code == 404
+    mock_db.delete.assert_not_called()

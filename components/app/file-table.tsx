@@ -1,10 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { FileRecord } from '@/lib/types/file'
-import { FileType, AlertCircle, CheckCircle2, Clock, Loader2, Database } from 'lucide-react'
+import { FileType, AlertCircle, CheckCircle2, Clock, Loader2, Database, Trash2 } from 'lucide-react'
 
 interface FileTableProps {
   files: FileRecord[]
+  isLoading?: boolean
+  fetchError?: string | null
+  onDelete?: (id: string) => Promise<void>
 }
 
 function formatBytes(bytes: number, decimals = 2) {
@@ -53,7 +57,39 @@ function StatusBadge({ status }: { status: FileRecord['status'] }) {
   }
 }
 
-export function FileTable({ files }: FileTableProps) {
+export function FileTable({ files, isLoading, fetchError, onDelete }: FileTableProps) {
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const handleDelete = async (id: string) => {
+    if (!onDelete || deletingId) return
+    setDeletingId(id)
+    try {
+      await onDelete(id)
+    } catch {
+      // Error is displayed by the parent page component above the table.
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-16 text-center flex flex-col items-center justify-center border-t border-border">
+        <Loader2 className="h-6 w-6 text-muted-foreground animate-spin mb-4" aria-hidden="true" />
+        <p className="text-sm text-muted-foreground">Loading files...</p>
+      </div>
+    )
+  }
+
+  if (fetchError) {
+    return (
+      <div className="p-16 text-center flex flex-col items-center justify-center border-t border-border">
+        <AlertCircle className="h-6 w-6 text-danger mb-4" aria-hidden="true" />
+        <p className="text-sm text-danger">{fetchError}</p>
+      </div>
+    )
+  }
+
   if (files.length === 0) {
     return (
       <div className="p-16 text-center flex flex-col items-center justify-center border-t border-border">
@@ -62,7 +98,7 @@ export function FileTable({ files }: FileTableProps) {
         </div>
         <h3 className="text-sm font-medium text-foreground">No files uploaded yet</h3>
         <p className="mt-1 text-sm text-muted-foreground max-w-sm mx-auto">
-          Files you upload during this session will appear here.
+          Upload a document above to get started.
         </p>
       </div>
     )
@@ -78,6 +114,7 @@ export function FileTable({ files }: FileTableProps) {
             <th scope="col" className="px-6 py-3">Size</th>
             <th scope="col" className="px-6 py-3">Status</th>
             <th scope="col" className="px-6 py-3 text-right">Uploaded</th>
+            {onDelete && <th scope="col" className="px-4 py-3"><span className="sr-only">Actions</span></th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-border bg-surface">
@@ -112,6 +149,22 @@ export function FileTable({ files }: FileTableProps) {
               <td className="px-6 py-4 text-right text-muted-foreground tabular-nums">
                 {new Date(file.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </td>
+              {onDelete && (
+                <td className="px-4 py-4">
+                  <button
+                    aria-label={`Delete ${file.original_filename}`}
+                    onClick={() => handleDelete(file.id)}
+                    disabled={deletingId === file.id}
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deletingId === file.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
