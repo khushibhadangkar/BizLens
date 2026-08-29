@@ -5,9 +5,9 @@ Contains the database models for file upload and ingestion tracking.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, date
 
-from sqlalchemy import BigInteger, DateTime, Enum, String, func, ForeignKey, Integer, JSON
+from sqlalchemy import BigInteger, DateTime, Enum, String, func, ForeignKey, Integer, JSON, Numeric, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -67,3 +67,32 @@ class ExtractedRow(Base):
     )
 
     file: Mapped["FileRecord"] = relationship("FileRecord", back_populates="extracted_rows")
+    normalized_facts: Mapped[list["NormalizedFact"]] = relationship(
+        "NormalizedFact", back_populates="extracted_row", cascade="all, delete-orphan"
+    )
+
+class NormalizedFact(Base):
+    """Represents a generic normalized business fact from an extracted row."""
+
+    __tablename__ = "normalized_facts"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    file_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("file_records.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    extracted_row_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("extracted_rows.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    row_number: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    canonical_name: Mapped[str] = mapped_column(String, index=True, nullable=False)
+    value_numeric: Mapped[float | None] = mapped_column(Numeric, nullable=True)
+    value_string: Mapped[str | None] = mapped_column(String, nullable=True)
+    date_value: Mapped[date | None] = mapped_column(Date, index=True, nullable=True)
+    category: Mapped[str | None] = mapped_column(String, index=True, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    extracted_row: Mapped["ExtractedRow"] = relationship("ExtractedRow", back_populates="normalized_facts")

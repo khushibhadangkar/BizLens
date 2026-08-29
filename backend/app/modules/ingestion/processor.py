@@ -10,7 +10,8 @@ import uuid
 import io
 
 from app.core.database import SessionLocal
-from app.modules.ingestion.models import ExtractedRow, FileRecord
+from app.modules.ingestion.models import ExtractedRow, FileRecord, NormalizedFact
+from app.modules.ingestion.normalizer import normalize_extracted_rows
 from app.services.storage import storage_service
 from app.shared.enums import ProcessingStatus
 
@@ -35,6 +36,11 @@ def process_file(file_id: uuid.UUID) -> None:
         db.commit()
 
         try:
+            # 2.5 Clean up existing rows in case of retry
+            db.query(NormalizedFact).filter(NormalizedFact.file_id == file_id).delete(synchronize_session=False)
+            db.query(ExtractedRow).filter(ExtractedRow.file_id == file_id).delete(synchronize_session=False)
+            db.commit()
+
             # 3. Retrieve bytes
             file_bytes = storage_service.get_file_bytes(record.storage_path)
 
@@ -65,11 +71,18 @@ def process_file(file_id: uuid.UUID) -> None:
                 if len(rows_to_insert) >= 1000:
                     db.add_all(rows_to_insert)
                     db.flush()
+
+                    # Normalize the batch
+                    normalize_extracted_rows(db, rows_to_insert)
                     rows_to_insert.clear()
 
             if rows_to_insert:
                 db.add_all(rows_to_insert)
                 db.flush()
+
+                # Normalize the final batch
+                normalize_extracted_rows(db, rows_to_insert)
+                rows_to_insert.clear()
 
             # 6. Update to COMPLETED
             record.status = ProcessingStatus.COMPLETED
