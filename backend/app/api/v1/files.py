@@ -9,13 +9,14 @@ import os
 import re
 import uuid
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, UploadFile, status, BackgroundTasks
 
 from app.api.dependencies import AuthenticatedUser, DbSession, StorageDep
 from app.core.config import settings
 from app.modules.ingestion.models import FileRecord
 from app.modules.ingestion.schemas import FileRecordResponse
 from app.shared.enums import ProcessingStatus
+from app.modules.ingestion.processor import process_file
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Files"])
@@ -39,6 +40,7 @@ async def upload_file(
     user_id: AuthenticatedUser,
     db: DbSession,
     storage: StorageDep,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
 ):
     """
@@ -116,6 +118,16 @@ async def upload_file(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to save file metadata.",
         ) from e
+
+    # 6. Trigger Background Processing
+    if record.file_type == "csv":
+        background_tasks.add_task(process_file, record.id)
+    else:
+        # Mark non-CSVs as FAILED for now since we only support CSV ingestion in Phase 3A
+        record.status = ProcessingStatus.FAILED
+        record.error_message = "Only CSV files are supported for ingestion at this time."
+        db.commit()
+        db.refresh(record)
 
     return record
 

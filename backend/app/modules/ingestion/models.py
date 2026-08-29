@@ -7,8 +7,9 @@ Contains the database models for file upload and ingestion tracking.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Enum, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import BigInteger, DateTime, Enum, String, func, ForeignKey, Integer, JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.core.database import Base
 from app.shared.enums import ProcessingStatus
@@ -43,3 +44,26 @@ class FileRecord(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    extracted_rows: Mapped[list["ExtractedRow"]] = relationship(
+        "ExtractedRow", back_populates="file", cascade="all, delete-orphan"
+    )
+
+
+class ExtractedRow(Base):
+    """Represents a single parsed row from an uploaded file."""
+
+    __tablename__ = "extracted_rows"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    file_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("file_records.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    row_number: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
+    row_data: Mapped[dict] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    file: Mapped["FileRecord"] = relationship("FileRecord", back_populates="extracted_rows")

@@ -33,6 +33,10 @@ class StorageService(Protocol):
         """Delete a file from storage."""
         ...
 
+    def get_file_bytes(self, path: str) -> bytes:
+        """Retrieve a file's raw bytes from storage."""
+        ...
+
 
 class SupabaseStorageService:
     """Supabase Storage implementation."""
@@ -90,6 +94,28 @@ class SupabaseStorageService:
         except Exception as e:
             logger.error(f"Failed to delete file from Supabase Storage: {e}")
             raise StorageException(f"Failed to delete file: {e}") from e
+
+    def get_file_bytes(self, path: str) -> bytes:
+        """Retrieve a file's raw bytes from Supabase Storage.
+
+        Args:
+            path: Path to the file in the bucket.
+
+        Returns:
+            The raw bytes of the file.
+
+        Raises:
+            StorageException: If the download fails.
+        """
+        if not self._client:
+            raise StorageException("Storage is not configured.")
+
+        try:
+            # supabase-py download() returns bytes
+            return self._client.storage.from_(self.bucket).download(path)
+        except Exception as e:
+            logger.error(f"Failed to download file from Supabase Storage: {e}")
+            raise StorageException(f"Failed to download file: {e}") from e
 
 
 # Singleton instance

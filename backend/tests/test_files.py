@@ -4,7 +4,7 @@ BizLens Backend — Tests for file upload API.
 
 import uuid
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -56,8 +56,9 @@ def client(mock_db, mock_storage):
     app.dependency_overrides[get_db] = lambda: mock_db
     app.dependency_overrides[get_storage_service] = lambda: mock_storage
 
-    with TestClient(app) as c:
-        yield c
+    with patch("app.api.v1.files.process_file") as mock_process:
+        with TestClient(app) as c:
+            yield c
 
     app.dependency_overrides.clear()
 
