@@ -1,23 +1,22 @@
 import { ChevronRight, ShieldCheck } from 'lucide-react'
+import Link from 'next/link'
 import { Header } from '@/components/landing/header'
 import { LiveWorkspace } from '@/components/landing/live-workspace'
 import { TrustLayer } from '@/components/landing/trust-layer'
-import { AiCopilot } from '@/components/landing/ai-copilot'
 import { IntelligencePipeline } from '@/components/landing/intelligence-pipeline'
-import { SystemArchitecture } from '@/components/landing/system-architecture'
 import { DecisionBrief } from '@/components/landing/decision-brief'
 import { BizLensScene } from '@/components/bizlens-scene'
 import { novaRetail } from '@/lib/bizlens-data'
 
 export default function Page() {
   return (
-    <main className="min-h-screen overflow-hidden bg-background text-foreground font-sans">
+    <main className="min-h-screen bg-background text-foreground font-sans">
       <Header />
 
       {/* Hero Section */}
-      <section id="top" className="relative isolate min-h-screen bg-background pt-20">
+      <section id="top" className="relative isolate min-h-[85vh] overflow-hidden bg-background pt-20">
         <BizLensScene />
-        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-80px)] max-w-[1600px] flex-col justify-between px-6 pb-12 pt-14 md:px-12 lg:px-16">
+        <div className="relative z-10 mx-auto flex min-h-[calc(85vh-80px)] max-w-[1600px] flex-col justify-between px-6 pb-10 pt-14 md:px-12 lg:px-16">
           {/* Top Info Row */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
             {/* Left Signal List */}
@@ -109,13 +108,68 @@ export default function Page() {
         </div>
       </section>
 
-      {/* Extracted Product Sections */}
+      {/* Extracted Product Sections — ordered to tell the story: Workspace → Pipeline → Trust → Decision */}
       <LiveWorkspace />
-      <TrustLayer />
-      <AiCopilot />
+
       <IntelligencePipeline />
-      <SystemArchitecture />
+      <TrustLayer />
       <DecisionBrief />
+
+      {/* Final Conversion Section */}
+      <section className="relative overflow-hidden border-t border-border bg-surface-muted/30 py-16 md:py-24">
+        {/* Abstract Background Visual */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
+          <div className="grid grid-cols-4 gap-8">
+            <div className="size-32 rounded-xl bg-foreground/20 rotate-12 blur-2xl" />
+            <div className="size-32 rounded-xl bg-foreground/20 -rotate-12 blur-2xl" />
+            <div className="size-32 rounded-full bg-primary/20 rotate-45 blur-2xl" />
+            <div className="size-32 rounded-full bg-success/20 rotate-90 blur-2xl" />
+          </div>
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-4xl px-6 text-center md:px-12">
+          {/* Subtle Data Flow Graphic */}
+          <div className="mb-10 flex justify-center items-center gap-4 text-muted-foreground/40">
+            <div className="flex flex-col gap-1.5 items-end">
+              <div className="h-0.5 w-8 rounded-full bg-border" />
+              <div className="h-0.5 w-12 rounded-full bg-border" />
+              <div className="h-0.5 w-6 rounded-full bg-border" />
+            </div>
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-border" />
+            <div className="relative flex items-center justify-center size-12 rounded-xl border border-success/30 bg-success/10 shadow-sm">
+              <ShieldCheck className="size-6 text-success" />
+              <div className="absolute -right-2 -top-2 size-4 rounded-full bg-success animate-pulse opacity-50" />
+            </div>
+            <div className="h-px w-12 bg-gradient-to-r from-border to-transparent" />
+            <div className="flex flex-col gap-1.5 items-start">
+              <div className="h-0.5 w-10 rounded-full bg-primary/50" />
+              <div className="h-0.5 w-6 rounded-full bg-primary/50" />
+            </div>
+          </div>
+
+          <h2 className="text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl md:text-6xl leading-[1.05]">
+            Stop searching through data.<br />
+            <span className="font-serif italic font-normal text-foreground/80">Start making decisions.</span>
+          </h2>
+          <p className="mt-6 text-base leading-relaxed text-muted-foreground max-w-2xl mx-auto">
+            Upload your own data and experience the full BizLens intelligence workspace today.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/register"
+              className="group flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[15px] font-medium text-primary-foreground transition hover:opacity-90 shadow-xl"
+            >
+              Create Your Workspace <ChevronRight className="size-4" />
+            </Link>
+            <Link
+              href="/login"
+              className="flex items-center gap-2 rounded-full border border-border bg-surface px-8 py-4 text-[15px] font-medium text-foreground transition hover:bg-surface-muted"
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <footer className="border-t border-border bg-surface px-6 py-8 md:px-12">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-3 text-xs text-muted-foreground sm:flex-row">

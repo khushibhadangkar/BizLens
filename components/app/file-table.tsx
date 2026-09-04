@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { FileRecord } from '@/lib/types/file'
 import { FileType, AlertCircle, CheckCircle2, Clock, Loader2, Database, Trash2 } from 'lucide-react'
 
@@ -114,6 +115,7 @@ export function FileTable({ files, isLoading, fetchError, onDelete }: FileTableP
             <th scope="col" className="px-6 py-3">Size</th>
             <th scope="col" className="px-6 py-3">Status</th>
             <th scope="col" className="px-6 py-3 text-right">Uploaded</th>
+            <th scope="col" className="px-6 py-3 text-right"><span className="sr-only">Analytics</span></th>
             {onDelete && <th scope="col" className="px-4 py-3"><span className="sr-only">Actions</span></th>}
           </tr>
         </thead>
@@ -148,6 +150,20 @@ export function FileTable({ files, isLoading, fetchError, onDelete }: FileTableP
               </td>
               <td className="px-6 py-4 text-right text-muted-foreground tabular-nums">
                 {new Date(file.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </td>
+              <td className="px-6 py-4 text-right">
+                {file.status === 'COMPLETED' ? (
+                  <Link 
+                    href={`/dashboard/analytics/${file.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    View Analytics
+                  </Link>
+                ) : (
+                  <span className="inline-block px-3 py-1.5 text-xs font-medium text-muted-foreground opacity-50 cursor-not-allowed">
+                    Not Ready
+                  </span>
+                )}
               </td>
               {onDelete && (
                 <td className="px-4 py-4">

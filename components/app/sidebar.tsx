@@ -31,8 +31,12 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   }
 
   const navItems = [
-    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Files', href: '/dashboard/files', icon: Folder },
+    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, disabled: false },
+    { name: 'Files', href: '/dashboard/files', icon: Folder, disabled: false },
+    { name: 'Analytics', href: '#', icon: Hexagon, disabled: true },
+    { name: 'Insights', href: '#', icon: Hexagon, disabled: true },
+    { name: 'Verification', href: '#', icon: Hexagon, disabled: true },
+    { name: 'Evidence', href: '#', icon: Hexagon, disabled: true },
   ]
 
   const SidebarContent = (
@@ -50,8 +54,19 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
 
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
+          const isActive = pathname === item.href && !item.disabled
+          return item.disabled ? (
+            <div
+              key={item.name}
+              className="group flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
+            >
+              <div className="flex items-center gap-3">
+                <item.icon className="size-4 shrink-0 text-muted-foreground/40" aria-hidden="true" />
+                {item.name}
+              </div>
+              <span className="text-[9px] uppercase tracking-wider font-semibold border border-border/50 px-1.5 py-0.5 rounded text-muted-foreground/50">Soon</span>
+            </div>
+          ) : (
             <Link
               key={item.name}
               href={item.href}

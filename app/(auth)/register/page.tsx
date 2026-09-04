@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [checkingSession, setCheckingSession] = useState(true)
@@ -27,22 +28,45 @@ export default function LoginPage() {
     checkSession()
   }, [router])
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.")
+      setLoading(false)
+      return
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.")
+      setLoading(false)
+      return
+    }
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     })
 
     if (error) {
-      setError(error.message)
+      if (error.message.includes('already registered')) {
+        setError("This email is already registered. Please sign in.")
+      } else {
+        setError(error.message)
+      }
       setLoading(false)
     } else {
-      router.push('/dashboard')
-      router.refresh()
+      // With confirm email off, this typically logs them in.
+      // If email confirmation is required by Supabase config, data.session might be null.
+      if (data.session) {
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        setError("Registration successful! Please check your email to verify your account before logging in.")
+        setLoading(false)
+      }
     }
   }
 
@@ -63,17 +87,17 @@ export default function LoginPage() {
       
       <div className="w-full max-w-[400px] rounded-xl border border-border bg-surface p-8 shadow-sm">
         <div className="mb-6">
-          <h1 className="text-xl font-medium tracking-tight mb-1">Sign in to your account</h1>
-          <p className="text-sm text-muted-foreground">Enter your credentials to continue</p>
+          <h1 className="text-xl font-medium tracking-tight mb-1">Create an account</h1>
+          <p className="text-sm text-muted-foreground">Enter your details to get started</p>
         </div>
 
         {error && (
-          <div className="mb-6 rounded-md bg-danger/10 p-3 text-sm text-danger border border-danger/20">
+          <div className={`mb-6 rounded-md p-3 text-sm border ${error.includes('successful') ? 'bg-success/10 text-success border-success/20' : 'bg-danger/10 text-danger border-danger/20'}`}>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSignIn} className="space-y-4">
+        <form onSubmit={handleSignUp} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider" htmlFor="email">
               Email
@@ -105,14 +129,29 @@ export default function LoginPage() {
             />
           </div>
 
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider" htmlFor="confirmPassword">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              required
+              disabled={loading}
+            />
+          </div>
+
           <Button type="submit" className="w-full mt-2" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? 'Creating account...' : 'Create account'}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="font-medium text-primary hover:underline">
-              Sign up
+            Already have an account?{' '}
+            <Link href="/login" className="font-medium text-primary hover:underline">
+              Sign in
             </Link>
           </p>
         </form>

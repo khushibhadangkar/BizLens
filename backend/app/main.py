@@ -68,6 +68,10 @@ def create_app() -> FastAPI:
 
     app.include_router(files.router, prefix="/api/v1/files")
 
+    from app.api.v1 import analytics
+
+    app.include_router(analytics.router, prefix="/api/v1/analytics")
+
     return app
 
 

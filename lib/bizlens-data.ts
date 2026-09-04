@@ -52,9 +52,11 @@ const mockClaims = [
 export const novaRetail = {
   company: 'Nova Retail Group',
   period: 'Q3 2024',
-  revenue: '$2.84M',
+  revenue: '$2.15M',
   growth: '+18.6%',
-  margin: '34.2%',
+  margin: '63.7%',
+  netProfit: '$1.37M',
+  expense: '$780K',
   trust: Math.round(mockClaims.reduce((acc, c) => acc + c.confidence, 0) / mockClaims.length),
   sources: [
     { name: 'q3_finance_ledger.csv', type: 'Finance CSV', updated: '2m ago', status: 'verified', rows: 7 },
@@ -75,7 +77,7 @@ export const novaRetail = {
 export type Claim = (typeof novaRetail.claims)[number]
 export type Source = (typeof novaRetail.sources)[number]
 
-export const workflowSteps = ['Upload', 'Analyze', 'Retrieve', 'Generate', 'Verify', 'Decide'] as const
+export const workflowSteps = ['Upload', 'Analyze', 'Discover', 'Insights', 'Verify', 'Decide'] as const
 
 export const workflowDescriptions = [
   'Bring the source trail into one workspace.',
@@ -87,10 +89,10 @@ export const workflowDescriptions = [
 ] as const
 
 export const departmentExpenses = [
-  { dept: 'Sales', exp: 440 },
-  { dept: 'Mktg', exp: 165 },
-  { dept: 'Eng', exp: 84 },
-  { dept: 'Consult', exp: 95 },
+  { dept: 'Sales', exp: 350 },
+  { dept: 'Mktg', exp: 210 },
+  { dept: 'Eng', exp: 120 },
+  { dept: 'Consult', exp: 100 },
 ] as const
 
 export const copilotAnswers: Record<string, string> = {

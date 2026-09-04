@@ -2,44 +2,36 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, Award, CheckCircle2, Cpu, Database, FileSpreadsheet, Play, ShieldCheck, Sparkles, Zap } from 'lucide-react'
+import { AlertTriangle, Award, CheckCircle2, Cpu, Database, FileSpreadsheet, ShieldCheck, Sparkles, Zap } from 'lucide-react'
 
 export function IntelligencePipeline() {
   const [pipelineScenario, setPipelineScenario] = useState<'verified' | 'conflict'>('verified')
-  const [activeNodeIndex, setActiveNodeIndex] = useState<number>(5)
-  const [isSimulating, setIsSimulating] = useState<boolean>(false)
-
-  function runPipelineSimulation() {
-    setIsSimulating(true)
-    setActiveNodeIndex(0)
-    let step = 0
-    const interval = setInterval(() => {
-      step++
-      if (step <= 5) {
-        setActiveNodeIndex(step)
-      } else {
-        clearInterval(interval)
-        setIsSimulating(false)
-      }
-    }, 850)
-  }
+  const [activeNodeIndex, setActiveNodeIndex] = useState<number>(0)
 
   return (
-    <section className="border-t border-border bg-surface-muted/30 py-24 md:py-32">
+    <section id="pipeline" className="bg-surface-muted/30 py-16 md:py-24">
+      {/* Section connector — visually bridges from the Workspace above */}
+      <div className="mx-auto max-w-7xl px-6 md:px-12">
+        <div className="flex items-center gap-4 pb-12 md:pb-16">
+          <div className="flex-1 border-t border-dashed border-border/60" />
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">How it works</span>
+          <div className="flex-1 border-t border-dashed border-border/60" />
+        </div>
+      </div>
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         {/* Section Header & Scenario Selector */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div>
-            <p className="eyebrow">/ 04 LIVE INTELLIGENCE PIPELINE</p>
+            <p className="eyebrow">/ 02 INTELLIGENCE PIPELINE</p>
             <h2 className="mt-5 text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl md:text-6xl leading-[1.05]">
               Real-time Autonomous <span className="font-serif italic font-normal text-foreground/80">Verification Engine</span>.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Interactive pipeline execution: <span className="text-foreground font-mono text-xs">Files ➔ Analyze ➔ RAG ➔ Gemini ➔ Verify ➔ Decide</span>. Toggle scenarios or run live step simulation.
+              Every dashboard you see above is produced by this pipeline. Each step is deterministic, auditable, and independently verifiable.
             </p>
           </div>
 
-          {/* Scenario Toggles & Simulation Trigger */}
+          {/* Scenario Toggles */}
           <div className="flex flex-wrap items-center gap-3">
             <button 
               onClick={() => { setPipelineScenario('verified'); setActiveNodeIndex(5) }}
@@ -53,36 +45,29 @@ export function IntelligencePipeline() {
             >
               <AlertTriangle className="size-3.5" /> Scenario B: Conflict Flag
             </button>
-            <button 
-              onClick={runPipelineSimulation}
-              disabled={isSimulating}
-              className="flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-xs font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
-            >
-              <Play className="size-3.5 fill-current text-primary-foreground" /> {isSimulating ? 'Running Pipeline...' : 'Run Simulation'}
-            </button>
           </div>
         </div>
 
         {/* Interactive Pipeline Node Map */}
-        <div className="mt-12 rounded-2xl border border-border bg-surface p-6 md:p-8 shadow-xl">
-          <div className="flex items-center justify-between pb-4 border-b border-border mb-8">
+        <div className="mt-10 rounded-2xl border border-border bg-surface p-5 md:p-7 shadow-xl">
+          <div className="flex items-center justify-between pb-4 border-b border-border mb-6">
             <span className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
               <Zap className="size-4 text-success animate-pulse" /> Live Pipeline Dataflow Execution
             </span>
             <span className="text-xs font-mono text-muted-foreground">
-              Active Node: <span className="text-foreground font-bold">{['Files Ingestion', 'Schema Alignment', 'LlamaIndex RAG', 'Gemini Synthesis', 'SHAP Audit', 'Decision Engine'][activeNodeIndex]}</span>
+              Active: <span className="text-foreground font-bold">{['01 Upload', '02 Analyze', '03 Discover', '04 Insights', '05 Verify', '06 Decide'][activeNodeIndex]}</span>
             </span>
           </div>
 
           {/* 6 Connected Nodes Layout */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 relative">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { label: 'Files', sub: 'Ingestion & Parse', icon: FileSpreadsheet },
-              { label: 'Analyze', sub: 'Pandas & Schema', icon: Cpu },
-              { label: 'RAG', sub: 'ChromaDB Vector', icon: Database },
-              { label: 'Gemini', sub: 'Gemini 2.5 Flash', icon: Sparkles },
-              { label: 'Verify', sub: 'SHAP Math Audit', icon: ShieldCheck },
-              { label: 'Decide', sub: 'Verified / Conflict', icon: Award },
+              { label: '01 Upload', sub: 'Ingestion & Parse', icon: FileSpreadsheet },
+              { label: '02 Analyze', sub: 'Data Normalization', icon: Cpu },
+              { label: '03 Discover', sub: 'Fact Extraction', icon: Database },
+              { label: '04 Insights', sub: 'Metrics Engine', icon: Sparkles },
+              { label: '05 Verify', sub: 'Logic Audit', icon: ShieldCheck },
+              { label: '06 Decide', sub: 'Verified / Conflict', icon: Award },
             ].map((node, idx) => {
               const IconComp = node.icon
               const isActive = activeNodeIndex === idx
@@ -99,13 +84,18 @@ export function IntelligencePipeline() {
                   </div>
 
                   <div className="mt-3">
-                    <span className="text-xs font-bold text-foreground block">{idx + 1}. {node.label}</span>
+                    <span className="text-xs font-bold text-foreground block">{node.label}</span>
                     <span className="text-[10px] text-muted-foreground block mt-0.5">{node.sub}</span>
                   </div>
 
-                  {/* Active step indicator dot */}
-                  <div className="mt-3 flex items-center justify-center">
-                    <span className={`size-2 rounded-full ${isActive ? 'bg-primary ring-4 ring-primary/20' : isPast ? 'bg-success' : 'bg-muted-foreground/30'}`} />
+                  <div className="mt-3 flex items-center justify-center text-xs">
+                    {isActive ? (
+                      <span className="text-primary font-bold">●</span>
+                    ) : isPast ? (
+                      <span className="text-success font-bold">✓</span>
+                    ) : (
+                      <span className="text-muted-foreground/50">○</span>
+                    )}
                   </div>
                 </button>
               )

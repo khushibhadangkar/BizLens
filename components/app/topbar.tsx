@@ -12,6 +12,7 @@ export function AppTopbar({ onMenuClick }: AppTopbarProps) {
   
   const getPageTitle = () => {
     if (pathname === '/dashboard') return 'Overview'
+    if (pathname?.startsWith('/dashboard/analytics')) return 'Analytics'
     if (pathname?.startsWith('/dashboard/files')) return 'Files'
     return 'Dashboard'
   }
