@@ -2,11 +2,27 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, Award, CheckCircle2, Cpu, Database, FileSpreadsheet, ShieldCheck, Sparkles, Zap } from 'lucide-react'
+import { AlertTriangle, Award, CheckCircle2, Cpu, Database, FileSpreadsheet, Play, ShieldCheck, Sparkles, Zap } from 'lucide-react'
 
 export function IntelligencePipeline() {
   const [pipelineScenario, setPipelineScenario] = useState<'verified' | 'conflict'>('verified')
   const [activeNodeIndex, setActiveNodeIndex] = useState<number>(0)
+  const [isSimulating, setIsSimulating] = useState<boolean>(false)
+
+  function runPipelineSimulation() {
+    setIsSimulating(true)
+    setActiveNodeIndex(0)
+    let step = 0
+    const interval = setInterval(() => {
+      step++
+      if (step <= 5) {
+        setActiveNodeIndex(step)
+      } else {
+        clearInterval(interval)
+        setIsSimulating(false)
+      }
+    }, 850)
+  }
 
   return (
     <section id="pipeline" className="bg-surface-muted/30 py-16 md:py-24">
@@ -33,6 +49,15 @@ export function IntelligencePipeline() {
 
           {/* Scenario Toggles */}
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={runPipelineSimulation}
+              disabled={isSimulating}
+              className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
+            >
+              <Play className="size-3.5 fill-current" />
+              {isSimulating ? 'Running…' : 'Start Demo'}
+            </button>
+            <div className="w-px h-6 bg-border/60 mx-1 hidden sm:block"></div>
             <button 
               onClick={() => { setPipelineScenario('verified'); setActiveNodeIndex(5) }}
               className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition ${pipelineScenario === 'verified' ? 'border-success/50 bg-success/10 text-success ring-2 ring-success/30' : 'border-border bg-surface-muted text-muted-foreground hover:text-foreground'}`}
