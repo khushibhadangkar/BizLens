@@ -8,7 +8,7 @@ new database tables or alter any existing model.
 """
 
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -52,4 +52,49 @@ class NormalizedFactResponse(BaseModel):
     category: Optional[str]
 
     # NormalizedFact is a SQLAlchemy ORM model.
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ---------------------------------------------------------------------------
+# Phase 3A — Insights
+# ---------------------------------------------------------------------------
+
+
+class InsightResponse(BaseModel):
+    """Serialises a single deterministic business insight."""
+
+    metric: str
+    label: str
+    observation: str
+    supporting_value: Optional[float]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FileInsightsResponse(BaseModel):
+    """All insights generated for a single completed file."""
+
+    file_id: uuid.UUID
+    insights: list[InsightResponse]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ---------------------------------------------------------------------------
+# Phase 3B — Verification
+# ---------------------------------------------------------------------------
+
+
+class VerificationRecordResponse(BaseModel):
+    """Serialises a persisted VerificationRecord."""
+
+    id: uuid.UUID
+    file_id: uuid.UUID
+    metric: str
+    claimed_value: float
+    verified_value: float
+    status: str          # VerificationStatus string value
+    fact_count: int
+    created_at: datetime
+
     model_config = ConfigDict(from_attributes=True)

@@ -26,6 +26,7 @@ if config.config_file_name is not None:
 # Target metadata for autogenerate support.
 # Import all model modules here so Base.metadata is populated.
 import app.modules.ingestion.models  # noqa: F401
+import app.modules.analytics.models  # noqa: F401
 target_metadata = Base.metadata
 
 

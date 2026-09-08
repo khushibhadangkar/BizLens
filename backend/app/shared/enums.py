@@ -23,3 +23,11 @@ class ProcessingStatus(StrEnum):
     PROCESSING = "PROCESSING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+
+
+class VerificationStatus(StrEnum):
+    """Result of an independent verification check."""
+
+    VERIFIED = "VERIFIED"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+    UNABLE_TO_VERIFY = "UNABLE_TO_VERIFY"
