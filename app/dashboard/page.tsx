@@ -132,11 +132,8 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/files" className={buttonVariants({ variant: 'outline' })}>
-            View Files
-          </Link>
           <Link href="/dashboard/files" className={buttonVariants({ variant: 'default' })}>
-            Upload Dataset
+            View Files
           </Link>
         </div>
       </div>
@@ -330,24 +327,14 @@ export default function DashboardPage() {
           </div>
 
           {/* SECTION 5: QUICK ACTIONS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link href="/dashboard/files" className="flex items-center gap-4 rounded-xl border border-border bg-surface p-5 hover:bg-surface-muted transition group">
-              <div className="rounded-full bg-primary/10 p-3 text-primary group-hover:scale-110 transition-transform">
-                <Database className="size-5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Upload Dataset</h4>
-                <p className="text-xs text-muted-foreground mt-0.5">Add new financial data</p>
-              </div>
-            </Link>
-            
+          <div className="grid grid-cols-1 gap-6">
             <Link href="/dashboard/files" className="flex items-center gap-4 rounded-xl border border-border bg-surface p-5 hover:bg-surface-muted transition group">
               <div className="rounded-full bg-surface-muted p-3 text-muted-foreground group-hover:scale-110 transition-transform border border-border">
                 <FileSpreadsheet className="size-5" />
               </div>
               <div>
                 <h4 className="text-sm font-medium text-foreground">View Files</h4>
-                <p className="text-xs text-muted-foreground mt-0.5">Manage existing datasets</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Manage existing datasets and upload new data</p>
               </div>
             </Link>
           </div>

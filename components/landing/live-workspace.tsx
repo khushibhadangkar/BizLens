@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ChevronRight, Database, Download, FileSpreadsheet, LayoutDashboard, Play, ShieldCheck, Upload, X, CheckCircle2 } from 'lucide-react'
+import { ChevronRight, Database, Download, FileSpreadsheet, LayoutDashboard, Play, ShieldCheck, X, CheckCircle2 } from 'lucide-react'
 import { departmentExpenses, novaRetail, parsedLedgerData, rawCsvDatasets, workflowDescriptions, workflowSteps } from '@/lib/bizlens-data'
 
 export function LiveWorkspace() {
@@ -38,26 +38,34 @@ export function LiveWorkspace() {
 
   function runDemo() {
     setIsRunning(true)
+    setDemoTab('dashboard')
     setActiveStep(0)
+    setFiles(['q3_finance_ledger.csv', 'crm_export_q3.csv', 'board_report.pdf'])
+    
+    const ensureVisible = () => {
+      const el = document.getElementById('workspace')
+      if (el) {
+        const rect = el.getBoundingClientRect()
+        const isVisible = rect.top >= -200 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + 200
+        if (!isVisible) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }
+    }
+
+    ensureVisible()
+
     let step = 0
     const interval = setInterval(() => {
       step++
       if (step <= 5) {
         setActiveStep(step)
+        ensureVisible()
       } else {
         clearInterval(interval)
         setIsRunning(false)
       }
-    }, 1200)
-  }
-
-  function addFiles(list: FileList | null) { 
-    if (!list) return
-    const names = Array.from(list).filter((file) => /\.(csv|xlsx?|pdf)$/i.test(file.name)).map((file) => file.name)
-    if (names.length) { 
-      setFiles((current) => [...new Set([...current, ...names])])
-      setActiveStep(1) 
-    } 
+    }, 1800)
   }
 
   function downloadCsvData() {
@@ -91,10 +99,6 @@ export function LiveWorkspace() {
             >
               <Play className="size-4 fill-current text-primary-foreground" /> Reload CSV Dataset
             </button>
-            <label className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-6 py-3.5 text-sm font-medium text-foreground transition hover:bg-surface-muted hover:border-border">
-              <input className="sr-only" type="file" multiple accept=".csv,.xlsx,.xls,.pdf" onChange={(e) => addFiles(e.target.files)} />
-              <Upload className="size-4" /> Upload Custom CSV
-            </label>
           </div>
 
           <div className="mt-4 flex items-center gap-2 text-xs font-mono text-muted-foreground">
@@ -162,9 +166,13 @@ export function LiveWorkspace() {
             <div className="p-6">
               {activeStep === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95 duration-500">
-                  <Database className="size-10 text-muted-foreground/30 mb-4" />
-                  <h3 className="text-lg font-medium text-foreground">Awaiting Dataset</h3>
-                  <p className="text-sm text-muted-foreground mt-1 max-w-xs">Upload a CSV or reload the demo dataset to begin the intelligence pipeline.</p>
+                  <Database className={`size-10 mb-4 ${isRunning ? 'text-primary animate-pulse' : 'text-muted-foreground/30'}`} />
+                  <h3 className="text-lg font-medium text-foreground">
+                    {isRunning ? 'Uploading & Indexing Data...' : 'Awaiting Dataset'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                    {isRunning ? 'Processing files through the intelligence pipeline.' : 'Upload a CSV or reload the demo dataset to begin the intelligence pipeline.'}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-6">
