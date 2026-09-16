@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Hexagon, LayoutDashboard, Folder, LogOut } from 'lucide-react'
+import {
+  Hexagon,
+  LayoutDashboard,
+  Folder,
+  LogOut,
+  BarChart2,
+  FileSearch,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -33,17 +40,22 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const navItems = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, disabled: false },
     { name: 'Files', href: '/dashboard/files', icon: Folder, disabled: false },
-    { name: 'Analytics', href: '#', icon: Hexagon, disabled: true },
-    { name: 'Insights', href: '#', icon: Hexagon, disabled: true },
-    { name: 'Verification', href: '#', icon: Hexagon, disabled: true },
-    { name: 'Evidence', href: '#', icon: Hexagon, disabled: true },
+    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart2, disabled: false },
+    { name: 'Evidence', href: '/dashboard/evidence', icon: FileSearch, disabled: false },
   ]
+
+  const isNavActive = (href: string): boolean => {
+    // Overview: exact match only (prevents matching all /dashboard/* routes)
+    if (href === '/dashboard') return pathname === '/dashboard'
+    // All others: prefix match
+    return pathname.startsWith(href)
+  }
 
   const SidebarContent = (
     <div className="flex h-full flex-col bg-surface border-r border-border">
       <div className="flex h-16 items-center px-6">
-        <Link 
-          href="/dashboard" 
+        <Link
+          href="/dashboard"
           className="flex items-center gap-2.5 text-lg font-semibold tracking-tight text-foreground"
           onClick={onMobileClose}
         >
@@ -54,34 +66,25 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
 
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => {
-          const isActive = pathname === item.href && !item.disabled
-          return item.disabled ? (
-            <div
-              key={item.name}
-              className="group flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className="size-4 shrink-0 text-muted-foreground/40" aria-hidden="true" />
-                {item.name}
-              </div>
-              <span className="text-[9px] uppercase tracking-wider font-semibold border border-border/50 px-1.5 py-0.5 rounded text-muted-foreground/50">Soon</span>
-            </div>
-          ) : (
+          const active = isNavActive(item.href)
+          return (
             <Link
               key={item.name}
               href={item.href}
               onClick={onMobileClose}
               className={cn(
-                "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+                'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                active
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-surface-muted hover:text-foreground',
               )}
             >
               <item.icon
                 className={cn(
-                  "size-4 shrink-0",
-                  isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
+                  'size-4 shrink-0',
+                  active
+                    ? 'text-primary-foreground'
+                    : 'text-muted-foreground group-hover:text-foreground',
                 )}
                 aria-hidden="true"
               />

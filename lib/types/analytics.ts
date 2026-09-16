@@ -17,3 +17,32 @@ export interface NormalizedFact {
   date_value: string | null
   category: string | null
 }
+
+// ── Phase 4: Insights ──────────────────────────────────────────────────────
+
+export interface Insight {
+  metric: string
+  label: string
+  observation: string
+  supporting_value: number | null
+}
+
+export interface FileInsightsResponse {
+  file_id: string
+  insights: Insight[]
+}
+
+// ── Phase 4: Verification ──────────────────────────────────────────────────
+
+export type VerificationStatus = 'VERIFIED' | 'NEEDS_REVIEW' | 'UNABLE_TO_VERIFY'
+
+export interface VerificationRecord {
+  id: string
+  file_id: string
+  metric: string
+  claimed_value: number
+  verified_value: number
+  status: VerificationStatus
+  fact_count: number
+  created_at: string
+}
